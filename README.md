@@ -3,7 +3,8 @@
 ---
 This is a fork of [logstash-plugins/logstash-output-mongodb](https://github.com/logstash-plugins/logstash-output-mongodb).
 
-It adds the :action, :filter, :update_expressions and :upsert parameters
+It adds the `:action`, `:filter`, `:update_expressions` and `:upsert` parameters
+
 ---
 
 This is a plugin for [Logstash](https://github.com/elastic/logstash).
