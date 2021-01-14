@@ -221,12 +221,7 @@ class LogStash::Outputs::Mongodb < LogStash::Outputs::Base
         (e.result["writeErrors"] || []).each do |writeError|
           is_duplicate_key_error = is_duplicate_key_error | (writeError["code"] == 11000)
         end
-      else
-        is_duplicate_key_error = (e.message =~ /^E11000/)
       end
-
-      @logger.error("Error: #{e.message}", logger_data)
-      @logger.trace("Error backtrace", backtrace: e.backtrace)
 
       if is_duplicate_key_error
         # On a duplicate key error, skip the insert.
@@ -234,8 +229,11 @@ class LogStash::Outputs::Mongodb < LogStash::Outputs::Base
         # and generate a new primary key.
         # If the duplicate key error is on another field, we have no way
         # to fix the issue.
-        @logger.debug("Skipping insert because of a duplicate key error", :event => event, :exception => e)
+        @logger.debug("Skipping insert because of a duplicate key error", logger_data)
       else
+        @logger.error("Error: #{e.message}", logger_data)
+        @logger.trace("Error backtrace", backtrace: e.backtrace)
+
         # if max_retries is negative we retry forever
         if @max_retries < 0 || retry_count < @max_retries
           retry_count += 1
