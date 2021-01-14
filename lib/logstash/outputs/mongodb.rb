@@ -233,14 +233,15 @@ class LogStash::Outputs::Mongodb < LogStash::Outputs::Base
       else
         @logger.error("Error: #{e.message}", logger_data)
         @logger.trace("Error backtrace", backtrace: e.backtrace)
+      end
 
-        # if max_retries is negative we retry forever
-        if @max_retries < 0 || retry_count < @max_retries
-          retry_count += 1
-          @logger.warn("Failed to send event to MongoDB retrying (#{retry_count.to_s}) in #{@retry_delay.to_s} seconds")
-          sleep(@retry_delay)
-          retry
-        end
+      # if max_retries is negative we retry forever unless we prefer to skip
+      retry_forever = @max_retries < 0 && !is_duplicate_key_error
+      if retry_forever || retry_count < @max_retries
+        retry_count += 1
+        @logger.warn("Failed to send event to MongoDB retrying (#{retry_count.to_s}) in #{@retry_delay.to_s} seconds")
+        sleep(@retry_delay)
+        retry
       end
     end
   end
