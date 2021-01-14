@@ -208,6 +208,15 @@ class LogStash::Outputs::Mongodb < LogStash::Outputs::Base
         write_to_mongodb(collection, [document])
       end
 
+      if retry_count > 0
+        @logger.debug("Retry was successful",
+                      :collection => collection,
+                      :document => document,
+                      :action => action,
+                      :filter => filter_hash,
+                      :update_expressions => expressions_hash)
+      end
+
     rescue => e
       logger_data = {:collection => collection,
                      :document => document,
@@ -242,6 +251,8 @@ class LogStash::Outputs::Mongodb < LogStash::Outputs::Base
         @logger.warn("Failed to send event to MongoDB retrying (#{retry_count.to_s}) in #{@retry_delay.to_s} seconds")
         sleep(@retry_delay)
         retry
+      elsif retry_count > 0
+        @logger.debug("No more retry attempts left, dropping operation", logger_data)
       end
     end
   end
